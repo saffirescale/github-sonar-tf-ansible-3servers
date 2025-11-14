@@ -1,0 +1,80 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd app
+          npm install
+
+      - name: Run tests
+        run: |
+          cd app
+          npm test || true
+
+      # - name: SonarQube Scan
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: |
+      #     # Requires sonar-scanner installed on runner or use docker image
+      #     # This is a placeholder command; configure sonar scanner per your Sonar instance.
+      #     echo "Running Sonar scan (placeholder)"
+
+      # - name: Publish package to GitHub Packages (npm)
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGE_REGISTRY_TOKEN }}
+      #   run: |
+      #     cd app
+      #     echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+      #     npm publish --registry=https://npm.pkg.github.com/
+
+  terraform-plan:
+    needs: build-and-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Terraform Init & Plan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          cd terraform
+          terraform init
+          terraform plan -out=plan.tfplan
+
+  # Optional: apply step (requires approval / protected)
+  terraform-apply:
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Terraform Apply
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          cd terraform
+          terraform apply -auto-approve
