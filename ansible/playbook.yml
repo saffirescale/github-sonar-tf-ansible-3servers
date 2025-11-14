@@ -1,0 +1,9 @@
+- name: Deploy app to all servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Ensure Python is present (for Ansible on target)
+      raw: test -e /usr/bin/python || (apt-get update && apt-get install -y python-minimal) 
+      when: ansible_os_family == 'Debian'
+
+- import_playbook: roles/web/tasks/main.yml

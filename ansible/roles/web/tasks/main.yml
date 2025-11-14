@@ -1,0 +1,77 @@
+---
+# Tasks to install Node.js, Apache/nginx, MySQL and deploy sample app
+
+- name: Install Node.js on Debian/Ubuntu
+  apt:
+    name: nodejs
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Install Node.js on RedHat/CentOS
+  yum:
+    name: nodejs
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: Ensure Apache (httpd) installed on RedHat
+  yum:
+    name: httpd
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: Ensure Apache installed on Debian
+  apt:
+    name: apache2
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Start and enable Apache
+  service:
+    name: "{{ 'httpd' if ansible_os_family == 'RedHat' else 'apache2' }}"
+    state: started
+    enabled: yes
+
+- name: Install MySQL server (MariaDB) on Debian
+  apt:
+    name: mariadb-server
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Install MySQL server (MariaDB) on RedHat
+  yum:
+    name: mariadb-server
+    state: present
+  when: ansible_os_family == 'RedHat'
+
+- name: Ensure mariadb running
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+  when: ansible_os_family != 'Windows'
+
+- name: Create app directory
+  file:
+    path: /opt/demo_app
+    state: directory
+    owner: root
+    mode: '0755'
+
+- name: Download artifact from GitHub Packages (placeholder)
+  get_url:
+    url: "{{ artifact_url }}"
+    dest: /opt/demo_app/app.zip
+  when: artifact_url is defined
+
+- name: Unarchive artifact
+  unarchive:
+    src: /opt/demo_app/app.zip
+    dest: /opt/demo_app
+    remote_src: yes
+  when: artifact_url is defined
+
+- name: Install npm dependencies
+  npm:
+    path: /opt/demo_app
+    production: yes
+  when: ansible_os_family != 'Windows'
