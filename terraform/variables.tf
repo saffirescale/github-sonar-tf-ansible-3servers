@@ -1,21 +1,21 @@
 variable "aws_region" { 
-    type = string, 
+    type = string
     default = "ap-south-1" 
 }
 variable "key_name" { 
-    type = string, 
+    type = string 
     description = "aws-demo-ec2" 
 }
 variable "public_key_path" {
-    type = string, 
+    type = string 
     description = "Path to public key file (id_rsa.pub)" 
 }
 variable "vpc_id" { 
-    type = string, 
+    type = string 
     description = "VPC ID to deploy instances into" 
 }
 variable "subnet_id" { 
-    type = string, 
+    type = string 
     description = "public_subnet_cidr" 
 }
 
