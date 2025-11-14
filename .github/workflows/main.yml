@@ -28,21 +28,21 @@ jobs:
           cd app
           npm test || true
 
-      - name: SonarQube Scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          # Requires sonar-scanner installed on runner or use docker image
-          # This is a placeholder command; configure sonar scanner per your Sonar instance.
-          echo "Running Sonar scan (placeholder)"
+      # - name: SonarQube Scan
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: |
+      #     # Requires sonar-scanner installed on runner or use docker image
+      #     # This is a placeholder command; configure sonar scanner per your Sonar instance.
+      #     echo "Running Sonar scan (placeholder)"
 
-      - name: Publish package to GitHub Packages (npm)
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGE_REGISTRY_TOKEN }}
-        run: |
-          cd app
-          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
-          npm publish --registry=https://npm.pkg.github.com/
+      # - name: Publish package to GitHub Packages (npm)
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGE_REGISTRY_TOKEN }}
+      #   run: |
+      #     cd app
+      #     echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+      #     npm publish --registry=https://npm.pkg.github.com/
 
   terraform-plan:
     needs: build-and-scan
